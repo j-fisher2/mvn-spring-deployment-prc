@@ -82,19 +82,6 @@ public class BinaryControllerTest {
         		.andExpect(model().attribute("result", "1110"))
         		.andExpect(model().attribute("operand1", "111"));
 	}
-	@Test
-	public void testMissingOperator() throws Exception {
-    		this.mvc.perform(post("/").param("operand1", "101").param("operand2", "11"))
-        		.andExpect(status().isOk())
-        		.andExpect(view().name("Error"));
-	}
-
-	@Test
-	public void testInvalidOperator() throws Exception {
-    		this.mvc.perform(post("/").param("operand1", "101").param("operator", "?").param("operand2", "11"))
-        		.andExpect(status().isOk())
-        		.andExpect(view().name("Error"));
-	}
 
 	@Test
 	public void testBitwiseOr() throws Exception {

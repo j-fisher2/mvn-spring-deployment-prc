@@ -1,4 +1,4 @@
-##Binary Calculator Web Application##<br>
+**Binary Calculator Web Application**#<br>
 This repository contains the files necessary to deploy a Binary Calculator web application using Docker and Kubernetes.<br>
 
 Deployment Configuration<br>

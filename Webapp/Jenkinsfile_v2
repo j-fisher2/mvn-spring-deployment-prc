@@ -1,8 +1,8 @@
 pipeline {
   environment {
     //PROJECT = "REPLACE_WITH_YOUR_PROJECT_ID"
-	PROJECT = "green-tract-379622"
-    APP_NAME = "binary-calculator2"
+	PROJECT = "graceful-album-415815"
+    APP_NAME = "binarycalculator"
 	//CLUSTER = "REPLACE_WITH_YOUR_CLUSTER_NAME"
     CLUSTER = "sofe3980u"
     CLUSTER_ZONE = "northamerica-northeast1-b"
@@ -50,18 +50,18 @@ spec:
     }
     //stage ('test') {
     //  steps {
-    //    sh 'mvn clean test -f ./BinaryCalculatorWebapp/pom.xml'
+    //    sh 'mvn clean test -f ./Webapp/pom.xml'
     //  }
     //}
     stage ('build') {
       steps {
-        sh 'mvn package -DskipTests -f ./BinaryCalculatorWebapp/pom.xml'
+        sh 'mvn package -DskipTests -f ./Webapp/pom.xml'
       }
     }
     stage('Build and push image with Container Builder') {
       steps {
         container('gcloud') {
-          sh "/builder/google-cloud-sdk/bin/gcloud builds submit -t ${IMAGE_TAG} ./BinaryCalculatorWebapp/"
+          sh "/builder/google-cloud-sdk/bin/gcloud builds submit -t ${IMAGE_TAG} ./Webapp/"
         }
       }
     }

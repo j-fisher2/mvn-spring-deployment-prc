@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    
+    environment {
+        PROJECT = "graceful-album-415815"
+        APP_NAME = "binarycalculator"
+        IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}"
+        CREDENTIALS_ID = "your_credentials_id_here" // Replace with your Jenkins credentials ID
+    }
+
+    tools {
+        // Define Maven tool
+        maven 'maven'
+        // Define Google Cloud SDK tool
+        // Ensure that you have configured the Google Cloud SDK tool in Jenkins
+        // Go to Manage Jenkins > Global Tool Configuration to configure it
+        // Use the tool name configured in Jenkins
+        googleCloudSdk 'google-cloud-sdk'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Check out the source code from Git repository
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Build the Maven project
+                sh 'mvn package -DskipTests -f ./Webapp/pom.xml'
+            }
+        }
+
+        stage('Build and Push Image') {
+            steps {
+                // Authenticate with Google Cloud using service account key file
+                withCredentials([file(credentialsId: env.CREDENTIALS_ID, variable: 'SERVICE_ACCOUNT_KEY_FILE')]) {
+                    sh "gcloud auth activate-service-account --key-file=${SERVICE_ACCOUNT_KEY_FILE}"
+                }
+                
+                // Build and push Docker image to Google Container Registry
+                sh "gcloud builds submit --tag ${IMAGE_TAG} ./Webapp/"
+            }
+        }
+    }
+}

@@ -27,7 +27,7 @@ pipeline {
                 sh 'mvn package -DskipTests -f ./Webapp/pom.xml'
             }
         }
-        stages {
+
         stage('Install Docker') {
             steps {
                 script {
@@ -38,18 +38,18 @@ pipeline {
                 }
             }
         }
+
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    docker.build(REPO_PATH, ".")
+                    docker.build(IMAGE_TAG, ".")
                 }
                 script {
                     docker.withRegistry('https://gcr.io', CREDENTIALS_ID) {
-                        docker.image(REPO_PATH).push()
+                        docker.image(IMAGE_TAG).push()
                     }
                 }
             }
         }
     }
-}
 }

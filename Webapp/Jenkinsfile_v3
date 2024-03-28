@@ -1,39 +1,44 @@
 pipeline {
     agent any
-    
+
     environment {
         PROJECT = "graceful-album-415815"
-        REPO_PATH = "gcr.io/${PROJECT}/binarycalculator"
-        CREDENTIALS_ID = "gcp_token" 
-    }
-
-    tools {
-        // Define Maven tool
-        maven 'maven'
+        APP_NAME = "binarycalculator"
+        REPO_PATH = "gcr.io/${PROJECT}/${APP_NAME}"
+        KUBE_CONFIG = "$HOME.kube/config"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Check out the source code from Git repository
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                // Build the Maven project
-                sh 'mvn package -DskipTests -f ./Webapp/pom.xml'
+                script {
+                    docker.build(REPO_PATH, ".")
+                }
             }
         }
 
-        stage('Build and Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
-                // Build Docker image
-                sh "docker build -t ${REPO_PATH} ."
-                
-                // Push Docker image to Artifact Registry
-                sh "docker push ${REPO_PATH}"
+                script {
+                    docker.withRegistry('https://gcr.io', 'gcp_credentials_id') {
+                        docker.image(REPO_PATH).push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh "kubectl --kubeconfig=${KUBE_CONFIG} create deployment binarycalculator-deployment --image=${REPO_PATH} --port=8080"
+                    sh "kubectl --kubeconfig=${KUBE_CONFIG} expose deployment binarycalculator-deployment --type=LoadBalancer --name=binarycalculator-service"
+                }
             }
         }
     }

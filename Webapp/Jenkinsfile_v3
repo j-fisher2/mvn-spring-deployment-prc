@@ -27,14 +27,25 @@ pipeline {
                 sh 'mvn package -DskipTests -f ./Webapp/pom.xml'
             }
         }
-
+        stages {
+        stage('Install Docker') {
+            steps {
+                script {
+                    sh 'sudo apt-get update'
+                    sh 'sudo apt-get install -y docker.io'
+                    sh 'sudo systemctl start docker'
+                    sh 'sudo systemctl enable docker'
+                }
+            }
+        }
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    def dockerImageTag = IMAGE_TAG
-                    docker.build(dockerImageTag, "-f Dockerfile .")
-                    docker.withRegistry('https://northamerica-northeast1-docker.pkg.dev', 'CREDENTIALS_ID') {
-                        docker.image(dockerImageTag).push()
+                    docker.build(REPO_PATH, ".")
+                }
+                script {
+                    docker.withRegistry('https://gcr.io', CREDENTIALS_ID) {
+                        docker.image(REPO_PATH).push()
                     }
                 }
             }

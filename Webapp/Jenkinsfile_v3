@@ -11,11 +11,6 @@ pipeline {
     tools {
         // Define Maven tool
         maven 'maven'
-        // Define Google Cloud SDK tool
-        // Ensure that you have configured the Google Cloud SDK tool in Jenkins
-        // Go to Manage Jenkins > Global Tool Configuration to configure it
-        // Use the tool name configured in Jenkins
-        googleCloudSdk 'google-cloud-sdk'
     }
 
     stages {
@@ -33,15 +28,15 @@ pipeline {
             }
         }
 
-        stage('Build and Push Image') {
+        stage('Build and Push Docker Image') {
             steps {
-                // Authenticate with Google Cloud using service account key file
-                withCredentials([file(credentialsId: env.CREDENTIALS_ID, variable: 'SERVICE_ACCOUNT_KEY_FILE')]) {
-                    sh "gcloud auth activate-service-account --key-file=${SERVICE_ACCOUNT_KEY_FILE}"
+                script {
+                    def dockerImageTag = IMAGE_TAG
+                    docker.build(dockerImageTag, "-f Dockerfile .")
+                    docker.withRegistry('https://us-docker.pkg.dev', 'pp1') {
+                        docker.image(dockerImageTag).push()
+                    }
                 }
-                
-                // Build and push Docker image to Google Container Registry
-                sh "gcloud builds submit --tag ${IMAGE_TAG} ./Webapp/"
             }
         }
     }

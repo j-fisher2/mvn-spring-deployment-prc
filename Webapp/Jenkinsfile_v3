@@ -3,9 +3,8 @@ pipeline {
     
     environment {
         PROJECT = "graceful-album-415815"
-        APP_NAME = "binarycalculator"
-        IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}"
-        CREDENTIALS_ID = "gcp_token" // This should be the ID of the Jenkins credentials containing your Google Cloud service account key
+        REPO_PATH = "gcr.io/${PROJECT}/binarycalculator"
+        CREDENTIALS_ID = "gcp_token" 
     }
 
     tools {
@@ -28,28 +27,15 @@ pipeline {
             }
         }
 
-        stage('Install Docker') {
-            steps {
-                script {
-                    sh 'sudo apt-get update'
-                    sh 'sudo apt-get install -y docker.io'
-                    sh 'sudo systemctl start docker'
-                    sh 'sudo systemctl enable docker'
-                }
-            }
-        }
-
         stage('Build and Push Docker Image') {
             steps {
-                script {
-                    docker.build(IMAGE_TAG, ".")
-                }
-                script {
-                    docker.withRegistry('https://gcr.io', CREDENTIALS_ID) {
-                        docker.image(IMAGE_TAG).push()
-                    }
-                }
+                // Build Docker image
+                sh "docker build -t ${REPO_PATH} ."
+                
+                // Push Docker image to Artifact Registry
+                sh "docker push ${REPO_PATH}"
             }
         }
     }
 }
+

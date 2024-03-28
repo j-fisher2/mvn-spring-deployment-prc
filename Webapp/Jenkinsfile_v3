@@ -5,7 +5,7 @@ pipeline {
         PROJECT = "graceful-album-415815"
         APP_NAME = "binarycalculator"
         IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}"
-        CREDENTIALS_ID = "gcp_token" 
+        CREDENTIALS_ID = "gcp_token" // This should be the ID of the Jenkins credentials containing your Google Cloud service account key
     }
 
     tools {
@@ -33,7 +33,7 @@ pipeline {
                 script {
                     def dockerImageTag = IMAGE_TAG
                     docker.build(dockerImageTag, "-f Dockerfile .")
-                    docker.withRegistry('https://us-docker.pkg.dev', 'pp1') {
+                    docker.withRegistry(''https://northamerica-northeast1-docker.pkg.dev'', 'CREDENTIALS_ID') {
                         docker.image(dockerImageTag).push()
                     }
                 }

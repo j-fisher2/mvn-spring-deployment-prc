@@ -33,7 +33,7 @@ pipeline {
                 script {
                     def dockerImageTag = IMAGE_TAG
                     docker.build(dockerImageTag, "-f Dockerfile .")
-                    docker.withRegistry(''https://northamerica-northeast1-docker.pkg.dev'', 'CREDENTIALS_ID') {
+                    docker.withRegistry('https://northamerica-northeast1-docker.pkg.dev', 'CREDENTIALS_ID') {
                         docker.image(dockerImageTag).push()
                     }
                 }

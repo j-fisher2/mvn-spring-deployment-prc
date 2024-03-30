@@ -1,46 +1,38 @@
 pipeline {
-    agent any
-
-    environment {
-        PROJECT = "graceful-album-415815"
-        APP_NAME = "binarycalculator"
-        REPO_PATH = "gcr.io/${PROJECT}/${APP_NAME}"
-        KUBE_CONFIG = "$HOME.kube/config"
+  agent any
+  tools {
+    maven 'maven' 
+  }
+  stages {
+    stage ('Init') {
+      steps {
+        sh 'echo "Start of Job"'
+        sh 'ls -la'
+      }
     }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build(REPO_PATH, ".")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://gcr.io', 'gcp_credentials_id') {
-                        docker.image(REPO_PATH).push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh "kubectl --kubeconfig=${KUBE_CONFIG} create deployment binarycalculator-deployment --image=${REPO_PATH} --port=8080"
-                    sh "kubectl --kubeconfig=${KUBE_CONFIG} expose deployment binarycalculator-deployment --type=LoadBalancer --name=binarycalculator-service"
-                }
-            }
-        }
+    stage ('test') {
+      steps {
+        sh 'mvn clean test -f ./BinaryCalculatorWebapp/pom.xml'
+      }
     }
+    stage ('build') {
+      steps {
+        sh 'mvn package -DskipTests -f ./BinaryCalculatorWebapp/pom.xml'
+      }
+    }
+    stage ('Deploy') {
+      steps {
+        script {
+          // Assuming you have a Docker image ready for deployment
+          // For example, if your image is named "binary-calculator2:latest"
+          // and is available in your Docker registry
+          sh '''
+            kubectl set image deployment/binarycalculator binarycalculator=yourdockerhubuser/binary-calculator2:latest --record
+            kubectl rollout status deployment/binarycalculator
+          '''
+        }
+      }
+    }
+  }
 }
 
